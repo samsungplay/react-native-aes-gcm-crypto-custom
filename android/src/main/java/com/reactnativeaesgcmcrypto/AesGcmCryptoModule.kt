@@ -112,10 +112,7 @@ fun encryptMerged(plainText: String,
     val mergedByteArray = sealed.ciphertext + sealed.tag + sealed.iv
 
     val mergedBase64 = Base64.getEncoder().encodeToString(mergedByteArray)
-
-    val response = WritableNativeMap()
-    response.putString("data", mergedBase64)
-    promise.resolve(response)
+    promise.resolve(mergedBase64)
   } catch (e: GeneralSecurityException) {
     promise.reject("EncryptionError", "Failed to encrypt", e)
   } catch (e: Exception) {
