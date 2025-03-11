@@ -99,6 +99,31 @@ class AesGcmCryptoModule(reactContext: ReactApplicationContext) : ReactContextBa
   }
 
   @ReactMethod
+fun encryptMerged(plainText: String,
+                  inBinary: Boolean,
+                  key: String,
+                  promise: Promise) {
+  try {
+    val keyData = Base64.getDecoder().decode(key)
+    val plainData = if (inBinary) Base64.getDecoder().decode(plainText) else plainText.toByteArray(Charsets.UTF_8)
+
+    val sealed = encryptData(plainData, keyData)
+
+    val mergedByteArray = sealed.ciphertext + sealed.tag + sealed.iv
+
+    val mergedBase64 = Base64.getEncoder().encodeToString(mergedByteArray)
+
+    val response = WritableNativeMap()
+    response.putString("data", mergedBase64)
+    promise.resolve(response)
+  } catch (e: GeneralSecurityException) {
+    promise.reject("EncryptionError", "Failed to encrypt", e)
+  } catch (e: Exception) {
+    promise.reject("EncryptionError", "Unexpected error", e)
+  }
+}
+
+  @ReactMethod
   fun encrypt(plainText: String,
               inBinary: Boolean,
               key: String,
