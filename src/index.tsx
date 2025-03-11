@@ -7,6 +7,11 @@ export type EncryptedData = {
 };
 
 type AesGcmCryptoType = {
+  encryptMerged(
+    plainText: string,
+    inBinary: boolean,
+    key: string
+  ): Promise<string>;
   decrypt(
     base64Ciphertext: string,
     key: string,
