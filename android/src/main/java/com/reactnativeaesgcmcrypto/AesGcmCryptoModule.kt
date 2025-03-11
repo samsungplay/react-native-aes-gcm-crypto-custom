@@ -98,6 +98,7 @@ class AesGcmCryptoModule(reactContext: ReactApplicationContext) : ReactContextBa
     }
   }
 
+  
   @ReactMethod
 fun encryptMerged(plainText: String,
                   inBinary: Boolean,
@@ -118,6 +119,36 @@ fun encryptMerged(plainText: String,
   } catch (e: Exception) {
     promise.reject("EncryptionError", "Unexpected error", e)
   }
+}
+
+@ReactMethod
+fun decryptMerged(mergedBase64: String,
+                  key: String,
+                  isBinary: Boolean,
+                  promise: Promise) {
+    try {
+        val keyData = Base64.decode(key, Base64.DEFAULT)
+        val mergedData = Base64.decode(mergedBase64, Base64.DEFAULT)
+
+
+        val iv = mergedData.sliceArray(mergedData.size - 28 until mergedData.size - 16) 
+        val tag = mergedData.sliceArray(mergedData.size - 16 until mergedData.size)      
+        val ciphertext = mergedData.sliceArray(0 until mergedData.size - 28)  
+
+        val unsealed = decryptData(ciphertext, keyData, iv, tag)
+
+        if (isBinary) {
+            promise.resolve(Base64.encodeToString(unsealed, Base64.DEFAULT))
+        } else {
+            promise.resolve(String(unsealed, Charsets.UTF_8))
+        }
+    } catch (e: javax.crypto.AEADBadTagException) {
+        promise.reject("DecryptionError", "Bad auth tag exception", e)
+    } catch (e: GeneralSecurityException) {
+        promise.reject("DecryptionError", "Failed to decrypt", e)
+    } catch (e: Exception) {
+        promise.reject("DecryptionError", "Unexpected error", e)
+    }
 }
 
   @ReactMethod
